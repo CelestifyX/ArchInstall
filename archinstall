@@ -114,7 +114,7 @@ read -p "> " graphical_select
 
 case "$graphical_select" in
     "1" )
-        desktop='pacstrap -i /mnt xorg xorg-server xorg-xwayland plasma sddm kate dolphin konsole discover elisa ark gwenview sddm-kcm spectacle packagekit-qt5 packagekit fwupd noto-fonts-emoji power-profiles-daemon --noconfirm pipewire pipewire-media-session pipewire-audio pipewire-alsa pipewire-jack pipewire-pulse zip unzip git bluez bluez-utils firefox'
+        desktop='pacstrap -i /mnt xorg xorg-server xorg-xwayland plasma sddm kate dolphin konsole discover elisa ark gwenview sddm-kcm spectacle packagekit-qt5 packagekit fwupd noto-fonts-emoji power-profiles-daemon pipewire pipewire-media-session pipewire-audio pipewire-alsa pipewire-jack pipewire-pulse zip unzip git bluez bluez-utils firefox qt6-quick3d kdeplasma-addons --noconfirm'
         display_manager='systemctl enable sddm packagekit bluetooth --force'
         DESKTOP_KEY='KDE'
     ;;
