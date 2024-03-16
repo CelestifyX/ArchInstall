@@ -1,0 +1,210 @@
+#!/bin/bash
+
+# AUTHOR:
+# TG/IG: CelestifyX
+
+# Pre-install
+sed -i 's/#en_US.UTF-8/en_US.UTF-8/g' /etc/locale.gen
+
+echo 'LANG=en_US.UTF-8' | tee /etc/locale.conf
+echo 'KEYMAP=en' | tee /etc/vconsole.conf
+echo 'FONT=cyr-sun16' | tee -a /etc/vconsole.conf
+
+setfont cyr-sun16
+locale-gen >/dev/null 2>&1; RETVAL=$?
+clear
+
+fdisk -l
+sleep 3
+
+echo -e "\n\n\n"
+echo 'Enter the drive name (EXAMPLE: sda, sdc, nvme0n1)'
+read -p "> " disk
+
+cfdisk --zero /dev/$disk
+clear
+
+fdisk -l
+
+echo -e "\n\n\n"
+echo 'Enter disk mount partitions (EXAMPLE: sda1.., sdc1.., nvme0n1p1..)'
+read -p "BOOT > " boot
+read -p "SWAP > " swap
+read -p "ROOT > " root
+
+mkfs.vfat -F32 /dev/$boot
+mkfs.f2fs -f /dev/$root
+
+mkswap /dev/$swap
+swapon /dev/$swap
+
+mkdir -p /mnt
+mount /dev/$root /mnt
+
+mkdir -p /mnt/boot/efi
+mount /dev/$boot /mnt/boot/efi
+
+echo -e "\n\n\n\n\n"
+echo 'Enter new root password'
+read -p "> " password
+
+echo 'Enter new username'
+read -p "> " username
+
+echo "Enter new username password (for $username)"
+read -p "> " userpassword
+
+echo 'Select kernel (1 - Linux, 2 - Linux ZEN, 3 - Linux LTS, 4 - Linux (AMD), 5 - Linux ZEN (AMD), 6 - Linux LTS (AMD))'
+read -p "> " kernel_select
+
+case "$kernel_select" in
+    "1" )
+        kernel='pacstrap -i /mnt base base-devel coreutils util-linux linux linux-headers linux-firmware sudo intel-ucode iucode-tool bluez bluez-utils nano dhcpcd dhclient networkmanager --noconfirm'
+        KERNEL_KEY='LINUX'
+    ;;
+
+    "2" )
+        kernel='pacstrap -i /mnt base base-devel coreutils util-linux linux-zen linux-zen-headers linux-firmware sudo intel-ucode iucode-tool bluez bluez-utils nano dhcpcd dhclient networkmanager --noconfirm'
+        KERNEL_KEY='LINUX-ZEN'
+    ;;
+
+    "3" )
+        kernel='pacstrap -i /mnt base base-devel coreutils util-linux linux-lts linux-lts-headers linux-firmware sudo intel-ucode iucode-tool bluez bluez-utils nano dhcpcd dhclient networkmanager --noconfirm'
+        KERNEL_KEY='KERNEL_LTS'
+    ;;
+
+    "4" )
+        kernel='pacstrap -i /mnt base base-devel linux linux-headers linux-firmware amd-ucode archlinux-keyring bluez bluez-utils nano dhcpcd dhclient networkmanager --noconfirm'
+        KERNEL_KEY='LINUX (AMD)'
+    ;;
+
+    "5" )
+        kernel='pacstrap -i /mnt base base-devel linux-zen linux-zen-headers linux-firmware amd-ucode archlinux-keyring bluez bluez-utils nano dhcpcd dhclient networkmanager --noconfirm'
+        KERNEL_KEY='LINUX-ZEN (AMD)'
+    ;;
+
+    "6" )
+        kernel='pacstrap -i /mnt base base-devel linux-lts linux-lts-headers linux-firmware amd-ucode archlinux-keyring bluez bluez-utils nano dhcpcd dhclient networkmanager --noconfirm'
+        KERNEL_KEY='LINUX-LTS (AMD)'
+    ;;
+esac
+
+echo 'Select driver (1 - NVIDIA, 2 - Intel + NVIDIA, 3 - AMD)'
+read -p "> " driver_select
+
+case "$driver_select" in
+    "1" )
+        driver='pacstrap -i /mnt vulkan-icd-loader lib32-vulkan-icd-loader nvidia-dkms nvidia-utils lib32-nvidia-utils vulkan-icd-loader lib32-vulkan-icd-loader lib32-opencl-nvidia opencl-nvidia network-manager-applet nvidia-settings --noconfirm'
+        DRIVER_KEY='NVIDIA (PROPRIETARY)'
+    ;;
+
+    "2" )
+        driver='pacstrap -i /mnt xf86-video-intel vulkan-intel lib32-vulkan-intel vulkan-icd-loader lib32-vulkan-icd-loader network-manager-applet libva-intel-driver lib32-libva-intel-driver nvidia-dkms nvidia-settings nvidia-prime --noconfirm'
+        DRIVER_KEY='INTEL + NVIDIA (PROPRIETARY)'
+    ;;
+
+    "3" )
+        driver='pacstrap -i /mnt xf86-video-ati xf86-video-amdgpu mesa mesa-demos lib32-mesa vulkan-radeon lib32-vulkan-radeon vulkan-icd-loader lib32-vulkan-icd-loader amdvlk lib32-amdvlk network-manager-applet --noconfirm'
+        DRIVER_KEY='AMD'
+    ;;
+esac
+
+echo 'Select graphical shell (1 - KDE, 2 - NOTHING)'
+read -p "> " graphical_select
+
+case "$graphical_select" in
+    "1" )
+        desktop='pacstrap -i /mnt xorg xorg-server xorg-xwayland plasma sddm kate dolphin konsole discover elisa ark gwenview sddm-kcm spectacle packagekit-qt5 packagekit fwupd noto-fonts-emoji power-profiles-daemon --noconfirm pipewire pipewire-media-session pipewire-audio pipewire-alsa pipewire-jack pipewire-pulse zip unzip git bluez bluez-utils firefox'
+        display_manager='systemctl enable sddm packagekit bluetooth --force'
+        DESKTOP_KEY='KDE'
+    ;;
+
+    "2" )
+        desktop='command > /dev/null'
+        display_manager='command > /dev/null'
+        DESKTOP_KEY='NOTHING'
+    ;;
+esac
+
+echo 'Enter your timezone (Example: /Europe/Kyiv)'
+read -p "> " timezone
+
+echo 'Enter your hostname (Example: usr)'
+read -p "> " hostname
+
+sed -i "/\[multilib\]/,/Include/"'s/^#//' /etc/pacman.conf
+sed -i s/'#ParallelDownloads = 5'/'ParallelDownloads = 10'/g /etc/pacman.conf
+clear
+
+echo 'Below will be everything you have chosen.'
+echo ''
+
+echo "DISK: /dev/$disk"
+echo "BOOT: /dev/$boot"
+echo "SWAP: /dev/$swap"
+echo "ROOT: /dev/$root"
+echo ''
+echo "Hostname: $hostname"
+echo "Root password: $password"
+echo "Username: $username | Password: $userpassword"
+echo "Kernel: $KERNEL_KEY"
+echo "Driver: $DRIVER_KEY"
+echo "Graphical shell: $DESKTOP_KEY"
+echo "Timezone: $timezone"
+echo -e "\n\n"
+
+read -t 99999 -n 1 -s -r -p "Are the data entered correct? Press enter, or reboot the system and start over"
+clear
+
+TERM=xterm-256color echo -e "\e[32mIn 5 seconds the installation of the system will begin...\e[0m"
+sleep 5
+clear
+
+pacman -Syy reflector archlinux-keyring --noconfirm
+reflector --sort rate -l 20 --save /etc/pacman.d/mirrorlist
+pacman -Syy
+
+${kernel}
+genfstab -U /mnt >> /mnt/etc/fstab
+
+# Install
+arch-chroot /mnt /bin/bash -c "ln -sf /usr/share/zoneinfo/$timezone /etc/localtime"
+arch-chroot /mnt /bin/bash -c "hwclock --systohc"
+arch-chroot /mnt /bin/bash -c "sed -i s/'#en_US.UTF-8'/'en_US.UTF-8'/g /etc/locale.gen"
+arch-chroot /mnt /bin/bash -c "locale-gen"
+arch-chroot /mnt /bin/bash -c "echo 'LANG=en_US.UTF-8' > /etc/locale.conf"
+arch-chroot /mnt /bin/bash -c "echo 'KEYMAP=en' > /etc/vconsole.conf"
+arch-chroot /mnt /bin/bash -c "echo 'FONT=cyr-sun16' >> /etc/vconsole.conf"
+arch-chroot /mnt /bin/bash -c "echo "$hostname" > /etc/hostname"
+arch-chroot /mnt /bin/bash -c "echo '127.0.0.1 localhost' > /etc/hosts"
+arch-chroot /mnt /bin/bash -c "echo '::1       localhost' >> /etc/hosts"
+arch-chroot /mnt /bin/bash -c "echo '127.0.0.1 $hostname.localdomain $hostname' >> /etc/hosts"
+arch-chroot /mnt /bin/bash -c "sed -i s/'#ParallelDownloads = 5'/'ParallelDownloads = 10'/g /etc/pacman.conf"
+arch-chroot /mnt /bin/bash -c "sed -i s/'#VerbosePkgLists'/'VerbosePkgLists'/g /etc/pacman.conf"
+sed -i "/\[multilib\]/,/Include/"'s/^#//' /mnt/etc/pacman.conf
+arch-chroot /mnt /bin/bash -c "sed -i s/'# %wheel ALL=(ALL:ALL) ALL'/'%wheel ALL=(ALL:ALL) ALL'/g /etc/sudoers"
+echo "root:$password" | arch-chroot /mnt chpasswd
+arch-chroot /mnt /bin/bash -c "mkinitcpio -P"
+arch-chroot /mnt /bin/bash -c "pacman -Syy grub efibootmgr --noconfirm"
+arch-chroot /mnt /bin/bash -c "useradd -m -G wheel -s /bin/bash $username"
+echo "$username:$userpassword" | arch-chroot /mnt chpasswd
+arch-chroot /mnt /bin/bash -c "grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=Arch --no-nvram --removable /dev/$disk"
+pacman -Syy
+
+${driver}
+${desktop}
+
+arch-chroot /mnt /bin/bash -c "sed -i s/'#greeter-session=lightdm-slick-greeter'/'greeter-session=lightdm-slick-greeter'/g /etc/lightdm/lightdm.conf" >/dev/null 2>&1; RETVAL=$?
+arch-chroot /mnt /bin/bash -c "${display_manager}"
+arch-chroot /mnt /bin/bash -c "systemctl enable NetworkManager dhcpcd"
+arch-chroot /mnt /bin/bash -c "grub-mkconfig -o /boot/grub/grub.cfg"
+arch-chroot /mnt /bin/bash -c "exit"
+umount -R /mnt
+
+# FINISH
+clear
+TERM=xterm-256color echo -e "\e[32mInstallation completed. The computer will restart in 5 seconds...\e[0m"
+sleep 5
+
+# REBOOT
+reboot
