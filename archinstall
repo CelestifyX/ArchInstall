@@ -35,7 +35,7 @@ read -p "ROOT > " root
 mkfs.vfat -F32 /dev/$boot
 mkfs.f2fs -f /dev/$root
 
-mkswap /dev/$swap
+mkswap -f /dev/$swap
 swapon /dev/$swap
 
 mkdir -p /mnt
