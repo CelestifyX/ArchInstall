@@ -23,7 +23,15 @@ read -p "SWAP > " swap
 read -p "ROOT > " root
 
 mkfs.vfat -F32 /dev/$boot
-mkfs.f2fs -f /dev/$root
+
+echo -e "\n\n"
+echo "Select file system type for /dev/$root (1 - F2FS, 2 - EXT4)"
+read -p "> " type_file_system
+
+case "$type_file_system" in
+    "1" ) mkfs.f2fs -f /dev/$root ;;
+    "2" ) mkfs.ext4 -f /dev/$root ;;
+esac
 
 mkswap -f /dev/$swap
 swapon /dev/$swap
