@@ -109,17 +109,38 @@ case "$driver_select" in
     ;;
 esac
 
-echo 'Select graphical shell (1 - KDE, 2 - NOTHING)'
+echo 'Select sound driver (1 - PIPEWIRE, 2 - NOTHING)'
+read -p "> " sound_driver
+
+case "$sound_driver" in
+    "1" )
+        sound='pacstrap -i /mnt pipewire pipewire-media-session pipewire-audio pipewire-alsa pipewire-jack pipewire-pulse'
+        SOUND_KEY='PIPEWIRE'
+    ;;
+
+    "2" )
+        sound='command > /dev/null'
+        SOUND_KEY='NOTHING'
+    ;;
+esac
+
+echo 'Select graphical shell (1 - KDE, 2 - GNOME, 3 - NOTHING)'
 read -p "> " graphical_select
 
 case "$graphical_select" in
     "1" )
-        desktop='pacstrap -i /mnt xorg xorg-server xorg-xwayland plasma sddm kate dolphin konsole discover elisa ark gwenview sddm-kcm spectacle packagekit-qt5 packagekit fwupd noto-fonts-emoji power-profiles-daemon pipewire pipewire-media-session pipewire-audio pipewire-alsa pipewire-jack pipewire-pulse zip unzip git bluez bluez-utils firefox qt6-quick3d kdeplasma-addons --noconfirm'
+        desktop='pacstrap -i /mnt xorg xorg-server xorg-xwayland plasma sddm kate dolphin konsole discover elisa ark gwenview sddm-kcm spectacle packagekit-qt5 packagekit fwupd noto-fonts-emoji power-profiles-daemon zip unzip git bluez bluez-utils firefox qt6-quick3d kdeplasma-addons --noconfirm'
         display_manager='systemctl enable sddm packagekit bluetooth --force'
         DESKTOP_KEY='KDE'
     ;;
 
     "2" )
+        desktop='pacstrap -i /mnt xorg xorg-server gnome dolphin kate gnome-terminal gnome-tweaks gnome-shell-extensions firefox gdm zip unzip git --noconfirm' 
+        display_manager='systemctl enable gdm --force'
+        DESKTOP_KEY='GNOME'
+    ;;
+
+    "3" )
         desktop='command > /dev/null'
         display_manager='command > /dev/null'
         DESKTOP_KEY='NOTHING'
@@ -148,7 +169,8 @@ echo "Hostname: $hostname"
 echo "Root password: $password"
 echo "Username: $username | Password: $userpassword"
 echo "Kernel: $KERNEL_KEY"
-echo "Driver: $DRIVER_KEY"
+echo "Video Card Driver: $DRIVER_KEY"
+echo "Sound Driver: $SOUND_KEY"
 echo "Graphical shell: $DESKTOP_KEY"
 echo "Timezone: $timezone"
 echo -e "\n\n"
@@ -192,6 +214,7 @@ arch-chroot /mnt /bin/bash -c "grub-install --target=x86_64-efi --efi-directory=
 pacman -Syy
 
 ${driver}
+${sound}
 ${desktop}
 
 arch-chroot /mnt /bin/bash -c "sed -i s/'#greeter-session=lightdm-slick-greeter'/'greeter-session=lightdm-slick-greeter'/g /etc/lightdm/lightdm.conf" >/dev/null 2>&1; RETVAL=$?
