@@ -135,7 +135,7 @@ case "$graphical_select" in
     ;;
 
     "2" )
-        desktop='pacstrap -i /mnt xorg xorg-server gnome dolphin kate gnome-terminal gnome-tweaks gnome-shell-extensions firefox gdm zip unzip git --noconfirm' 
+        desktop='pacstrap -i /mnt xorg xorg-server gnome dolphin kate gnome-terminal gnome-tweaks gnome-shell-extensions rhythmbox firefox gdm zip unzip git --noconfirm' 
         display_manager='systemctl enable gdm --force'
         DESKTOP_KEY='GNOME'
     ;;
