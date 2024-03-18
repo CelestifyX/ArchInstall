@@ -4,6 +4,8 @@
 # TG/IG: CelestifyX
 
 # Pre-install
+clear
+
 fdisk -l
 sleep 3
 
