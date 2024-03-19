@@ -3,14 +3,18 @@
 # AUTHOR:
 # TG/IG: CelestifyX
 
+print() {
+    echo -e "$1"
+}
+
 # Pre-install
 clear
 
 fdisk -l
 sleep 3
 
-echo -e "\n\n\n"
-echo 'Enter the drive name (EXAMPLE: sda, sdc, nvme0n1)'
+print "\n\n\n"
+print 'Enter the drive name (EXAMPLE: sda, sdc, nvme0n1)'
 read -p "> " disk
 
 cfdisk --zero /dev/$disk
@@ -18,17 +22,21 @@ clear
 
 fdisk -l
 
-echo -e "\n\n\n"
-echo 'Enter disk mount partitions (EXAMPLE: sda1.., sdc1.., nvme0n1p1..)'
+print "\n\n\n"
+print 'Enter disk mount partitions (EXAMPLE: sda1.., sdc1.., nvme0n1p1..)'
 read -p "BOOT > " boot
 read -p "SWAP > " swap
 read -p "ROOT > " root
 
-mkfs.vfat -F32 /dev/$boot
-
-echo -e "\n\n"
-echo "Select file system type for /dev/$root (1 - F2FS, 2 - EXT4)"
+print -e "\n\n"
+print "Select file system type for /dev/$root (1 - F2FS, 2 - EXT4)"
 read -p "> " type_file_system
+
+clear
+read -t 99999 -n 1 -s -r -p "Press enter to mount the disk"
+clear
+
+mkfs.vfat -F32 /dev/$boot
 
 case "$type_file_system" in
     "1" ) mkfs.f2fs -f /dev/$root ;;
@@ -44,33 +52,33 @@ mount /dev/$root /mnt
 mkdir -p /mnt/boot/efi
 mount /dev/$boot /mnt/boot/efi
 
-echo -e "\n\n\n\n\n"
-echo 'Enter new root password'
+print "\n\n\n\n\n"
+print 'Enter new root password'
 read -p "> " password
 
-echo 'Enter new username'
+print 'Enter new username'
 read -p "> " username
 
-echo "Enter new username password (for $username)"
+print "Enter new username password (for $username)"
 read -p "> " userpassword
 
-echo 'Select kernel (1 - Linux, 2 - Linux ZEN, 3 - Linux LTS, 4 - Linux (AMD), 5 - Linux ZEN (AMD), 6 - Linux LTS (AMD))'
+print 'Select kernel (1 - Linux (INTEL), 2 - Linux ZEN (INTEL), 3 - Linux LTS (INTEL), 4 - Linux (AMD), 5 - Linux ZEN (AMD), 6 - Linux LTS (AMD))'
 read -p "> " kernel_select
 
 case "$kernel_select" in
     "1" )
         kernel='pacstrap -i /mnt base base-devel coreutils util-linux linux linux-headers linux-firmware sudo intel-ucode iucode-tool bluez bluez-utils nano dhcpcd dhclient networkmanager --noconfirm'
-        KERNEL_KEY='LINUX'
+        KERNEL_KEY='LINUX (INTEL)'
     ;;
 
     "2" )
         kernel='pacstrap -i /mnt base base-devel coreutils util-linux linux-zen linux-zen-headers linux-firmware sudo intel-ucode iucode-tool bluez bluez-utils nano dhcpcd dhclient networkmanager --noconfirm'
-        KERNEL_KEY='LINUX-ZEN'
+        KERNEL_KEY='LINUX-ZEN (INTEL)'
     ;;
 
     "3" )
         kernel='pacstrap -i /mnt base base-devel coreutils util-linux linux-lts linux-lts-headers linux-firmware sudo intel-ucode iucode-tool bluez bluez-utils nano dhcpcd dhclient networkmanager --noconfirm'
-        KERNEL_KEY='KERNEL_LTS'
+        KERNEL_KEY='KERNEL_LTS (INTEL)'
     ;;
 
     "4" )
@@ -89,27 +97,37 @@ case "$kernel_select" in
     ;;
 esac
 
-echo 'Select driver (1 - NVIDIA, 2 - Intel + NVIDIA, 3 - AMD)'
+print 'Select video driver (1 - INTEL (BUILT-IN), 2 - NVIDIA, 3 - INTEL + NVIDIA, 4 - AMD (DISCRETE), 5 - NOTHING)'
 read -p "> " driver_select
 
 case "$driver_select" in
     "1" )
+        driver='pacstrap -i /mnt mesa mesa-demos xf86-video-intel lib32-mesa vulkan-intel lib32-vulkan-intel vulkan-icd-loader lib32-vulkan-icd-loader network-manager-applet libva-intel-driver lib32-libva-intel-driver --noconfirm'
+        DRIVER_KEY='INTEL (BUILT-IN)'
+    ;;
+
+    "2" )
         driver='pacstrap -i /mnt vulkan-icd-loader lib32-vulkan-icd-loader nvidia-dkms nvidia-utils lib32-nvidia-utils vulkan-icd-loader lib32-vulkan-icd-loader lib32-opencl-nvidia opencl-nvidia network-manager-applet nvidia-settings --noconfirm'
         DRIVER_KEY='NVIDIA (PROPRIETARY)'
     ;;
 
-    "2" )
+    "3" )
         driver='pacstrap -i /mnt xf86-video-intel vulkan-intel lib32-vulkan-intel vulkan-icd-loader lib32-vulkan-icd-loader network-manager-applet libva-intel-driver lib32-libva-intel-driver nvidia-dkms nvidia-settings nvidia-prime --noconfirm'
         DRIVER_KEY='INTEL + NVIDIA (PROPRIETARY)'
     ;;
 
-    "3" )
+    "4" )
         driver='pacstrap -i /mnt xf86-video-ati xf86-video-amdgpu mesa mesa-demos lib32-mesa vulkan-radeon lib32-vulkan-radeon vulkan-icd-loader lib32-vulkan-icd-loader amdvlk lib32-amdvlk network-manager-applet --noconfirm'
-        DRIVER_KEY='AMD'
+        DRIVER_KEY='AMD (DISCRETE)'
+    ;;
+
+    "5" )
+        driver='command > /dev/null'
+        DRIVER_KEY='NOTHING'
     ;;
 esac
 
-echo 'Select sound driver (1 - PIPEWIRE, 2 - NOTHING)'
+print 'Select sound driver (1 - PIPEWIRE, 2 - NOTHING)'
 read -p "> " sound_driver
 
 case "$sound_driver" in
@@ -124,7 +142,7 @@ case "$sound_driver" in
     ;;
 esac
 
-echo 'Select graphical shell (1 - KDE, 2 - GNOME, 3 - NOTHING)'
+print 'Select graphical shell (1 - KDE, 2 - GNOME, 3 - QTILE, 4 - NOTHING)'
 read -p "> " graphical_select
 
 case "$graphical_select" in
@@ -141,44 +159,50 @@ case "$graphical_select" in
     ;;
 
     "3" )
+        desktop='pacstrap -i /mnt mesa qtile alacritty wayland wlroots python-pywayland python-pywlroots polkit pango python-cairocffi python-xcffib python-xkbcommon python-pyxdg --noconfirm'
+        display_manager='command > /dev/null'
+        DESKTOP_KEY='QTILE'
+    ;;
+
+    "4" )
         desktop='command > /dev/null'
         display_manager='command > /dev/null'
         DESKTOP_KEY='NOTHING'
     ;;
 esac
 
-echo 'Enter your timezone (Example: /Europe/Kyiv)'
+print 'Enter your timezone (Example: /Europe/Kyiv)'
 read -p "> " timezone
 
-echo 'Enter your hostname (Example: usr)'
+print 'Enter your hostname (Example: usr)'
 read -p "> " hostname
 
 sed -i "/\[multilib\]/,/Include/"'s/^#//' /etc/pacman.conf
 sed -i s/'#ParallelDownloads = 5'/'ParallelDownloads = 10'/g /etc/pacman.conf
 clear
 
-echo 'Below will be everything you have chosen.'
-echo ''
+print 'Below will be everything you have chosen.'
+print ''
 
-echo "DISK: /dev/$disk"
-echo "BOOT: /dev/$boot"
-echo "SWAP: /dev/$swap"
-echo "ROOT: /dev/$root"
-echo ''
-echo "Hostname: $hostname"
-echo "Root password: $password"
-echo "Username: $username | Password: $userpassword"
-echo "Kernel: $KERNEL_KEY"
-echo "Video Card Driver: $DRIVER_KEY"
-echo "Sound Driver: $SOUND_KEY"
-echo "Graphical shell: $DESKTOP_KEY"
-echo "Timezone: $timezone"
-echo -e "\n\n"
+print "DISK: /dev/$disk"
+print "BOOT: /dev/$boot"
+print "SWAP: /dev/$swap"
+print "ROOT: /dev/$root"
+print ''
+print "Hostname: $hostname"
+print "Root password: $password"
+print "Username: $username | Password: $userpassword"
+print "Kernel: $KERNEL_KEY"
+print "Video Card Driver: $DRIVER_KEY"
+print "Sound Driver: $SOUND_KEY"
+print "Graphical shell: $DESKTOP_KEY"
+print "Timezone: $timezone"
+print "\n\n"
 
 read -t 99999 -n 1 -s -r -p "Are the data entered correct? Press enter, or reboot the system and start over"
 clear
 
-TERM=xterm-256color echo -e "\e[32mIn 5 seconds the installation of the system will begin...\e[0m"
+TERM=xterm-256color print "\e[32mIn 5 seconds the installation of the system will begin...\e[0m"
 sleep 5
 clear
 
@@ -226,7 +250,7 @@ umount -R /mnt
 
 # FINISH
 clear
-TERM=xterm-256color echo -e "\e[32mInstallation completed. The computer will restart in 5 seconds...\e[0m"
+TERM=xterm-256color read -t 99999 -n 1 -s -r -p "\e[32mInstallation completed. Press enter to reboot\e[0m"
 sleep 5
 
 # REBOOT
