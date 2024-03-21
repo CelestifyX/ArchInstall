@@ -33,7 +33,7 @@ print "Select file system type for /dev/$root (1 - F2FS, 2 - EXT4)"
 read -p "> " type_file_system
 
 clear
-read -t 99999 -n 1 -s -r -p "Press enter to mount the disk"
+read -t 99999 -n 1 -s -r -p "Press enter to mount the disk /dev/$disk"
 clear
 
 mkfs.vfat -F32 /dev/$boot
