@@ -250,7 +250,9 @@ umount -R /mnt
 
 # FINISH
 clear
-TERM=xterm-256color read -t 99999 -n 1 -s -r -p "\e[32mInstallation completed. Press enter to reboot\e[0m"
+TERM=xterm-256color print "\e[32mInstallation completed. Press enter to reboot\e[0m"
+read -t 99999 -n 1 -s -r -p ""
+
 sleep 5
 
 # REBOOT
