@@ -147,8 +147,8 @@ read -p "> " graphical_select
 
 case "$graphical_select" in
     "1" )
-        desktop='pacstrap -i /mnt xorg xorg-server xorg-xwayland plasma sddm kate dolphin konsole discover elisa ark gwenview sddm-kcm spectacle fwupd noto-fonts-emoji power-profiles-daemon zip unzip git bluez bluez-utils firefox qt6-quick3d kdeplasma-addons --noconfirm'
-        display_manager='systemctl enable sddm bluetooth --force'
+        desktop='pacstrap -i /mnt xorg xorg-server xorg-xwayland plasma sddm kate dolphin konsole discover elisa ark gwenview sddm-kcm spectacle packagekit packagekit-qt6 fwupd noto-fonts-emoji power-profiles-daemon zip unzip git bluez bluez-utils firefox qt6-quick3d kdeplasma-addons --noconfirm'
+        display_manager='systemctl enable sddm bluetooth packagekit --force'
         DESKTOP_KEY='KDE'
     ;;
 
