@@ -171,6 +171,21 @@ case "$graphical_select" in
     ;;
 esac
 
+print 'Select an office program (1 - LibreOffice, 2 - Nothing)'
+read -p "> " office_manager
+
+case "$office_manager" in
+    "1" )
+        office='pacstrap -i /mnt libreoffice'
+        OFFICE_KEY='LibreOffice'
+    ;;
+
+    "2" )
+        office='command > /dev/null'
+        OFFICE_KEY='NOTHING'
+    ;;
+esac
+
 print 'Enter your timezone (Example: /Europe/Kyiv)'
 read -p "> " timezone
 
@@ -192,10 +207,10 @@ print ''
 print "Hostname: $hostname"
 print "Root password: $password"
 print "Username: $username | Password: $userpassword"
-print "Kernel: $KERNEL_KEY"
 print "Video Card Driver: $DRIVER_KEY"
 print "Sound Driver: $SOUND_KEY"
 print "Graphical shell: $DESKTOP_KEY"
+print "Office: $OFFICE_KEY"
 print "Timezone: $timezone"
 print "\n\n"
 
@@ -240,6 +255,7 @@ pacman -Syy
 ${driver}
 ${sound}
 ${desktop}
+${office}
 
 arch-chroot /mnt /bin/bash -c "sed -i s/'#greeter-session=lightdm-slick-greeter'/'greeter-session=lightdm-slick-greeter'/g /etc/lightdm/lightdm.conf" >/dev/null 2>&1; RETVAL=$?
 arch-chroot /mnt /bin/bash -c "${display_manager}"
