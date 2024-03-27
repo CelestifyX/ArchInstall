@@ -176,7 +176,7 @@ read -p "> " office_manager
 
 case "$office_manager" in
     "1" )
-        office='pacstrap -i /mnt libreoffice'
+        office='pacstrap -i /mnt libreoffice --noconfirm'
         OFFICE_KEY='LibreOffice'
     ;;
 
